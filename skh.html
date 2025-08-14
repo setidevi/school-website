@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartSchool – School Management</title>
+  <meta name="description" content="Single-file school management website template with admissions, students, classes, fees, library, transport, and more. Accessible and offline-ready." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%230090ff' d='M4 22l28-10 28 10-28 10z'/%3E%3Cpath fill='%230066cc' d='M10 28l22 8 22-8v16L32 52 10 44z'/%3E%3Ccircle cx='32' cy='32' r='3' fill='white'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="manifest" id="pwa-manifest" href="#" />
+  <style>
+    :root{--bg:#0b1020;--panel:#111831;--muted:#7d89a7;--text:#e8ecf8;--brand:#0ea5e9;--accent:#22c55e;--warn:#f59e0b;--danger:#ef4444;--ring:0 0 0 3px rgba(14,165,233,.35)}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#0b1020,#0a0f1e 40%,#0b0f1c)}
+    a{color:inherit;text-decoration:none}
+    .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    .sidebar{background:rgba(255,255,255,.03);backdrop-filter:saturate(140%) blur(8px);border-right:1px solid rgba(255,255,255,.06);padding:18px;position:sticky;top:0;height:100vh}
+    .brand{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.2px}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 6px rgba(14,165,233,.25)}
+    .search{margin:16px 0;display:flex}
+    .search input{flex:1;background:#0e142a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;color:var(--text)}
+    .nav{display:grid;gap:6px}
+    .nav button{width:100%;text-align:left;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.08);padding:10px 12px;border-radius:12px;cursor:pointer}
+    .nav button.active,.nav button:hover{border-color:rgba(14,165,233,.6);box-shadow:var(--ring)}
+    .main{padding:22px 26px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:8px;background:#0e142a;border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:999px}
+    .btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#021225;border:0;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:#0e142a;color:var(--text);border:1px solid rgba(255,255,255,.1)}
+    .btn.warn{background:var(--warn);color:#1b1202}
+    .btn.danger{background:var(--danger)}
+    .grid{display:grid;gap:16px}
+    .grid.cols-4{grid-template-columns:repeat(4,1fr)}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    @media (max-width:1100px){.app{grid-template-columns:1fr}.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .3s ease;z-index:20;width:280px}.sidebar.open{transform:translateX(0)}.main{padding:90px 18px}}
+    .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px}
+    .card h3{margin:0 0 8px 0}
+    .muted{color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:left;padding:10px;background:rgba(255,255,255,.03)}
+    th{color:#a8b3cf;font-weight:700}
+    tr{border-radius:12px}
+    tr td:first-child, tr th:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    tr td:last-child, tr th:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    input,select,textarea{width:100%;background:#0e142a;border:1px solid rgba(255,255,255,.1);padding:10px 12px;border-radius:10px;color:var(--text)}
+    label{display:block;margin:10px 0 6px}
+    form .row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    @media (max-width:700px){.grid.cols-4{grid-template-columns:repeat(2,1fr)}.grid.cols-3,.grid.cols-2{grid-template-columns:1fr}form .row{grid-template-columns:1fr}}
+    .hidden{display:none !important}
+    .toast{position:fixed;right:16px;bottom:16px;background:#111831;border:1px solid rgba(255,255,255,.12);padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .kpi{font-size:24px;font-weight:800}
+    .tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#0e142a;border:1px solid rgba(255,255,255,.1);font-size:12px}
+    .status.ok{color:#22c55e}.status.warn{color:#f59e0b}.status.bad{color:#ef4444}
+    dialog{border:0;border-radius:14px;background:#0e142a;color:var(--text);padding:0}
+    dialog::backdrop{background:rgba(0,0,0,.6)}
+    .modal{padding:18px}
+    .modal header{display:flex;justify-content:space-between;align-items:center}
+    .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
+</head>
+<body>
+  <div class="app" id="app" aria-busy="false">
+    <aside class="sidebar" id="sidebar" aria-label="App navigation">
+      <div class="brand" aria-label="SmartSchool">
+        <div class="dot" aria-hidden="true"></div>
+        <span>SmartSchool</span>
+      </div>
+      <div class="search" role="search">
+        <input id="search" type="search" placeholder="Quick search (students, staff, classes)" aria-label="Quick search" />
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <button class="active" data-view="dashboard" aria-controls="view-dashboard">🏠 Dashboard</button>
+        <button data-view="admissions" aria-controls="view-admissions">📝 Admissions</button>
+        <button data-view="students" aria-controls="view-students">🎓 Students</button>
+        <button data-view="teachers" aria-controls="view-teachers">👩‍🏫 Teachers</button>
+        <button data-view="classes" aria-controls="view-classes">📚 Classes</button>
+        <button data-view="attendance" aria-controls="view-attendance">✅ Attendance</button>
+        <button data-view="exams" aria-controls="view-exams">🧪 Exams</button>
+        <button data-view="fees" aria-controls="view-fees">💳 Fees</button>
+        <button data-view="library" aria-controls="view-library">📖 Library</button>
+        <button data-view="transport" aria-controls="view-transport">🚌 Transport</button>
+        <button data-view="hostel" aria-controls="view-hostel">🏠 Hostel</button>
+        <button data-view="events" aria-controls="view-events">📅 Events</button>
+        <button data-view="announcements" aria-controls="view-announcements">📣 Announcements</button>
+        <button data-view="settings" aria-controls="view-settings">⚙️ Settings</button>
+      </nav>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn secondary" id="toggleSidebar" aria-expanded="true">Toggle Sidebar</button>
+        <button class="btn secondary" id="installPWA">Install App</button>
+      </div>
+      <p class="muted" style="margin-top:10px">Offline-ready • Keyboard accessible • Data stored locally</p>
+    </aside>
+
+    <main class="main" id="main" tabindex="-1">
+      <div class="topbar">
+        <div class="chip" aria-live="polite">📍 Academic Year: <strong id="yearLabel" style="margin-left:8px"></strong></div>
+        <div class="chip">🔔 <span id="notifCount">0</span> notifications</div>
+        <div class="chip">🌙 <label><input id="themeToggle" type="checkbox" /> Dark mode</label></div>
+        <button class="btn" id="openLogin">Sign in</button>
+      </div>
+
+      <!-- DASHBOARD -->
+      <section id="view-dashboard" class="view" aria-labelledby="h-dashboard">
+        <h2 id="h-dashboard">Dashboard</h2>
+        <div class="grid cols-4" id="kpis">
+          <div class="card"><div class="muted">Students</div><div class="kpi" id="kpi-students">0</div></div>
+          <div class="card"><div class="muted">Teachers</div><div class="kpi" id="kpi-teachers">0</div></div>
+          <div class="card"><div class="muted">Classes</div><div class="kpi" id="kpi-classes">0</div></div>
+          <div class="card"><div class="muted">Fees Collected</div><div class="kpi" id="kpi-fees">₹0</div></div>
+        </div>
+        <div class="grid cols-2" style="margin-top:16px">
+          <div class="card">
+            <h3>Today</h3>
+            <p class="muted" id="todayStr"></p>
+            <div id="todayList"></div>
+          </div>
+          <div class="card">
+            <h3>Quick Actions</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" onclick="showView('admissions')">New Admission</button>
+              <button class="btn secondary" onclick="showView('students')">Add Student</button>
+              <button class="btn secondary" onclick="showView('fees')">Record Fee</button>
+              <button class="btn secondary" onclick="showView('events')">Add Event</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMISSIONS -->
+      <section id="view-admissions" class="view hidden" aria-labelledby="h-admissions">
+        <h2 id="h-admissions">Admissions</h2>
+        <div class="grid cols-2">
+          <form id="admissionForm" class="card" aria-describedby="admissionHelp">
+            <h3>Application Form</h3>
+            <p class="muted" id="admissionHelp">All fields marked with * are required.</p>
+            <div class="row">
+              <div>
+                <label for="a-first">First name *</label>
+                <input id="a-first" name="first" required autocomplete="given-name" />
+              </div>
+              <div>
+                <label for="a-last">Last name *</label>
+                <input id="a-last" name="last" required autocomplete="family-name" />
+              </div>
+              <div>
+                <label for="a-dob">Date of birth *</label>
+                <input id="a-dob" name="dob" type="date" required />
+              </div>
+              <div>
+                <label for="a-class">Applying for class *</label>
+                <select id="a-class" name="class" required>
+                  <option value="">Select</option>
+                  <option>Nursery</option><option>KG</option><option>1</option><option>2</option><option>3</option>
+                </select>
+              </div>
+              <div>
+                <label for="a-parent">Parent/Guardian *</label>
+                <input id="a-parent" name="parent" required />
+              </div>
+              <div>
+                <label for="a-phone">Phone *</label>
+                <input id="a-phone" name="phone" type="tel" inputmode="tel" required />
+              </div>
+            </div>
+            <label for="a-notes">Notes</label>
+            <textarea id="a-notes" name="notes" rows="3" placeholder="Medical info, prior school, etc."></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn" type="submit">Submit Application</button>
+              <button class="btn secondary" type="reset">Reset</button>
+            </div>
+          </form>
+
+          <div class="card" aria-live="polite">
+            <h3>Applications</h3>
+            <table>
+              <thead><tr><th>Student</th><th>Class</th><th>Parent</th><th>Phone</th><th>Action</th></tr></thead>
+              <tbody id="admissionList"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- STUDENTS -->
+      <section id="view-students" class="view hidden" aria-labelledby="h-students">
+        <h2 id="h-students">Students</h2>
+        <div class="card">
+          <form id="studentForm" class="row" aria-label="Add or edit student">
+            <div>
+              <label for="s-name">Full name *</label>
+              <input id="s-name" required />
+            </div>
+            <div>
+              <label for="s-roll">Roll No *</label>
+              <input id="s-roll" required />
+            </div>
+            <div>
+              <label for="s-class">Class *</label>
+              <input id="s-class" required />
+            </div>
+            <div>
+              <label for="s-parent">Parent</label>
+              <input id="s-parent" />
+            </div>
+            <div>
+              <label for="s-phone">Phone</label>
+              <input id="s-phone" inputmode="tel" />
+            </div>
+            <div>
+              <label for="s-status">Status</label>
+              <select id="s-status"><option>Active</option><option>Alumni</option></select>
+            </div>
+            <div style="grid-column:1/-1;display:flex;gap:8px">
+              <button class="btn" type="submit">Save</button>
+              <button class="btn secondary" type="button" id="clearStudent">Clear</button>
+              <span class="muted" id="editHint" aria-live="polite"></span>
+            </div>
+          </form>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;align-items:center">
+              <label for="s-filter" class="sr-only">Filter</label>
+              <input id="s-filter" placeholder="Filter by name, class, roll" />
+            </div>
+            <div>
+              <button class="btn secondary" id="exportStudents">Export JSON</button>
+              <label class="btn secondary" for="importStudentsInput" style="cursor:pointer">Import JSON</label>
+              <input id="importStudentsInput" type="file" accept="application/json" class="sr-only" />
+            </div>
+          </div>
+          <table aria-describedby="studentCount">
+            <thead><tr><th>Roll</th><th>Name</th><th>Class</th><th>Parent</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="studentList"></tbody>
+          </table>
+          <p id="studentCount" class="muted"></p>
+        </div>
+      </section>
+
+      <!-- TEACHERS -->
+      <section id="view-teachers" class="view hidden" aria-labelledby="h-teachers">
+        <h2 id="h-teachers">Teachers</h2>
+        <div class="grid cols-3" id="teacherCards"></div>
+        <div class="card" style="margin-top:16px">
+          <form id="teacherForm" class="row">
+            <div><label for="t-name">Name *</label><input id="t-name" required /></div>
+            <div><label for="t-subject">Subject *</label><input id="t-subject" required /></div>
+            <div><label for="t-phone">Phone</label><input id="t-phone" inputmode="tel" /></div>
+            <div><label for="t-email">Email</label><input id="t-email" type="email" /></div>
+            <div style="grid-column:1/-1;display:flex;gap:8px"><button class="btn" type="submit">Save</button></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- CLASSES / TIMETABLE -->
+      <section id="view-classes" class="view hidden" aria-labelledby="h-classes">
+        <h2 id="h-classes">Classes & Timetable</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Create Class</h3>
+            <form id="classForm" class="row">
+              <div><label for="c-name">Name *</label><input id="c-name" required placeholder="e.g., Grade 6 - A" /></div>
+              <div><label for="c-room">Room</label><input id="c-room" placeholder="e.g., R-203" /></div>
+              <div><label for="c-teacher">Class Teacher</label><input id="c-teacher" list="teacherNames" /></div>
+              <datalist id="teacherNames"></datalist>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Classes</h3>
+            <table><thead><tr><th>Class</th><th>Room</th><th>Teacher</th><th>Action</th></tr></thead><tbody id="classList"></tbody></table>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Timetable</h3>
+          <form id="timeForm" class="row">
+            <div><label for="tt-class">Class *</label><input id="tt-class" required /></div>
+            <div><label for="tt-day">Day *</label><select id="tt-day"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option></select></div>
+            <div><label for="tt-period">Period *</label><input id="tt-period" type="number" min="1" max="10" required /></div>
+            <div><label for="tt-subject">Subject *</label><input id="tt-subject" required /></div>
+            <div><label for="tt-teacher">Teacher</label><input id="tt-teacher" list="teacherNames" /></div>
+            <div style="grid-column:1/-1"><button class="btn" type="submit">Add</button></div>
+          </form>
+          <table style="margin-top:10px"><thead><tr><th>Class</th><th>Day</th><th>Period</th><th>Subject</th><th>Teacher</th><th>Action</th></tr></thead><tbody id="ttList"></tbody></table>
+        </div>
+      </section>
+
+      <!-- ATTENDANCE -->
+      <section id="view-attendance" class="view hidden" aria-labelledby="h-attendance">
+        <h2 id="h-attendance">Attendance</h2>
+        <div class="card">
+          <form id="attForm" class="row">
+            <div><label for="att-date">Date *</label><input id="att-date" type="date" required /></div>
+            <div><label for="att-class">Class *</label><input id="att-class" required /></div>
+            <div style="grid-column:1/-1"><button class="btn" type="submit">Load Students</button></div>
+          </form>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3 id="attTitle">Mark Attendance</h3>
+          <table><thead><tr><th>Roll</th><th>Name</th><th>Present</th></tr></thead><tbody id="attList"></tbody></table>
+          <div style="margin-top:8px"><button class="btn" id="saveAttendance">Save</button></div>
+        </div>
+      </section>
+
+      <!-- EXAMS -->
+      <section id="view-exams" class="view hidden" aria-labelledby="h-exams">
+        <h2 id="h-exams">Exams & Grades</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Record Grade</h3>
+            <form id="gradeForm" class="row">
+              <div><label for="g-roll">Roll *</label><input id="g-roll" required /></div>
+              <div><label for="g-subj">Subject *</label><input id="g-subj" required /></div>
+              <div><label for="g-score">Score *</label><input id="g-score" type="number" min="0" max="100" required /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Grades</h3>
+            <table><thead><tr><th>Roll</th><th>Subject</th><th>Score</th><th>Action</th></tr></thead><tbody id="gradeList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEES -->
+      <section id="view-fees" class="view hidden" aria-labelledby="h-fees">
+        <h2 id="h-fees">Fees</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Record Payment</h3>
+            <form id="feeForm" class="row">
+              <div><label for="f-roll">Roll *</label><input id="f-roll" required /></div>
+              <div><label for="f-amount">Amount *</label><input id="f-amount" type="number" min="0" required /></div>
+              <div><label for="f-method">Method</label><select id="f-method"><option>Cash</option><option>Card</option><option>UPI</option></select></div>
+              <div><label for="f-date">Date</label><input id="f-date" type="date" /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Payments</h3>
+            <table><thead><tr><th>Date</th><th>Roll</th><th>Amount</th><th>Method</th><th>Action</th></tr></thead><tbody id="feeList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIBRARY -->
+      <section id="view-library" class="view hidden" aria-labelledby="h-library">
+        <h2 id="h-library">Library</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Add Book</h3>
+            <form id="bookForm" class="row">
+              <div><label for="b-title">Title *</label><input id="b-title" required /></div>
+              <div><label for="b-author">Author *</label><input id="b-author" required /></div>
+              <div><label for="b-isbn">ISBN</label><input id="b-isbn" /></div>
+              <div><label for="b-copies">Copies</label><input id="b-copies" type="number" min="1" value="1" /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Catalogue</h3>
+            <table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Copies</th><th>Action</th></tr></thead><tbody id="bookList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANSPORT -->
+      <section id="view-transport" class="view hidden" aria-labelledby="h-transport">
+        <h2 id="h-transport">Transport</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Add Route</h3>
+            <form id="routeForm" class="row">
+              <div><label for="r-name">Route *</label><input id="r-name" required placeholder="e.g., North Loop" /></div>
+              <div><label for="r-driver">Driver</label><input id="r-driver" /></div>
+              <div><label for="r-vehicle">Vehicle</label><input id="r-vehicle" placeholder="e.g., Bus 4" /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Routes</h3>
+            <table><thead><tr><th>Route</th><th>Driver</th><th>Vehicle</th><th>Action</th></tr></thead><tbody id="routeList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOSTEL -->
+      <section id="view-hostel" class="view hidden" aria-labelledby="h-hostel">
+        <h2 id="h-hostel">Hostel</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Add Room</h3>
+            <form id="roomForm" class="row">
+              <div><label for="h-room">Room #*</label><input id="h-room" required /></div>
+              <div><label for="h-cap">Capacity</label><input id="h-cap" type="number" min="1" value="2" /></div>
+              <div><label for="h-warden">Warden</label><input id="h-warden" /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Rooms</h3>
+            <table><thead><tr><th>Room</th><th>Capacity</th><th>Warden</th><th>Action</th></tr></thead><tbody id="roomList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EVENTS -->
+      <section id="view-events" class="view hidden" aria-labelledby="h-events">
+        <h2 id="h-events">Events Calendar</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Add Event</h3>
+            <form id="eventForm" class="row">
+              <div><label for="e-title">Title *</label><input id="e-title" required /></div>
+              <div><label for="e-date">Date *</label><input id="e-date" type="date" required /></div>
+              <div><label for="e-desc">Description</label><input id="e-desc" /></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Upcoming</h3>
+            <table><thead><tr><th>Date</th><th>Title</th><th>Action</th></tr></thead><tbody id="eventList"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNOUNCEMENTS / MESSAGES -->
+      <section id="view-announcements" class="view hidden" aria-labelledby="h-ann">
+        <h2 id="h-ann">Announcements & Messaging</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Post Announcement</h3>
+            <form id="annForm" class="row">
+              <div><label for="an-title">Title *</label><input id="an-title" required /></div>
+              <div style="grid-column:1/-1"><label for="an-body">Message *</label><textarea id="an-body" rows="4" required></textarea></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">Post</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Feed</h3>
+            <ul id="annFeed" style="list-style:none;padding:0;margin:0;display:grid;gap:10px"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="view-settings" class="view hidden" aria-labelledby="h-settings">
+        <h2 id="h-settings">Settings</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Backup & Restore</h3>
+            <p class="muted">Export or import all data stored in your browser (localStorage).</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="exportAll">Export All</button>
+              <label class="btn secondary" for="importAllInput" style="cursor:pointer">Import All</label>
+              <input id="importAllInput" type="file" accept="application/json" class="sr-only" />
+              <button class="btn warn" id="clearAll">Clear All Data</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>About</h3>
+            <p>Single-file demo built with accessibility and PWA basics. Data stays on your device.</p>
+            <p class="muted">Tip: add to Home Screen for an app-like experience.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <dialog id="authModal" aria-labelledby="authTitle">
+    <div class="modal">
+      <header><h3 id="authTitle">Sign in</h3><button class="btn secondary" onclick="closeAuth()">Close</button></header>
+      <form id="authForm" style="margin-top:10px">
+        <label for="auth-user">Username</label>
+        <input id="auth-user" autocomplete="username" />
+        <label for="auth-pass">Password</label>
+        <input id="auth-pass" type="password" autocomplete="current-password" />
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" type="submit">Continue</button></div>
+        <p class="muted">(Demo only — not connected to a server)</p>
+      </form>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script>
+    // ======= Data helpers (LocalStorage) =======
+    const store = {
+      get: (k, d=[]) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d)),
+      set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+      push: (k, item) => { const arr = store.get(k); arr.push(item); store.set(k, arr); },
+      delAt: (k, i) => { const arr = store.get(k); arr.splice(i,1); store.set(k, arr); },
+      replaceAt: (k, i, val) => { const arr = store.get(k); arr[i] = val; store.set(k, arr); },
+      clear: () => localStorage.clear()
+    };
+    const KEYS = {
+      admissions:'admissions', students:'students', teachers:'teachers', classes:'classes', timetable:'timetable',
+      attendance:'attendance', grades:'grades', fees:'fees', books:'books', routes:'routes', rooms:'rooms', events:'events', anns:'anns'
+    };
+
+    // ======= UI helpers =======
+    const qs = s => document.querySelector(s);
+    const qsa = s => Array.from(document.querySelectorAll(s));
+    const toast = (msg) => { const t = qs('#toast'); t.textContent = msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2200); }
+    const money = (n) => new Intl.NumberFormat(undefined,{style:'currency', currency:'INR'}).format(n||0);
+
+    // ======= Navigation =======
+    function showView(name){
+      qsa('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+      qsa('.view').forEach(v=>v.classList.add('hidden'));
+      qs(`#view-${name}`).classList.remove('hidden');
+      history.replaceState({}, '', `#${name}`);
+      if(name==='students') renderStudents();
+      if(name==='admissions') renderAdmissions();
+      if(name==='teachers') { renderTeachers(); renderTeacherDatalist(); }
+      if(name==='classes') { renderClasses(); renderTimetable(); renderTeacherDatalist(); }
+      if(name==='fees') renderFees();
+      if(name==='library') renderBooks();
+      if(name==='transport') renderRoutes();
+      if(name==='hostel') renderRooms();
+      if(name==='events') renderEvents();
+      if(name==='announcements') renderAnns();
+      if(name==='attendance') { qs('#attList').innerHTML=''; }
+    }
+
+    // ======= Sidebar toggle for mobile =======
+    qs('#toggleSidebar').addEventListener('click', ()=> qs('#sidebar').classList.toggle('open'));
+
+    // ======= Theme toggle =======
+    qs('#themeToggle').addEventListener('change', (e)=>{
+      document.documentElement.style.setProperty('--bg', e.target.checked ? '#0b1020' : '#f7f8fb');
+      document.documentElement.style.setProperty('--panel', e.target.checked ? '#111831' : '#ffffff');
+    });
+
+    // ======= Year & Today =======
+    const now = new Date();
+    qs('#yearLabel').textContent = `${now.getFullYear()}–${now.getFullYear()+1}`;
+    qs('#todayStr').textContent = now.toLocaleString(undefined,{weekday:'long', day:'numeric', month:'long'});
+
+    // ======= Admissions =======
+    qs('#admissionForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      store.push(KEYS.admissions, data);
+      e.target.reset(); renderAdmissions(); toast('Application submitted');
+    });
+    function renderAdmissions(){
+      const list = store.get(KEYS.admissions);
+      qs('#admissionList').innerHTML = list.map((a,i)=>`<tr><td>${a.first} ${a.last}</td><td><span class='tag'>${a.class}</span></td><td>${a.parent||''}</td><td>${a.phone||''}</td><td><button class='btn secondary' onclick='admit(${i})'>Admit</button> <button class='btn danger' onclick='delAdmission(${i})'>Delete</button></td></tr>`).join('');
+    }
+    function delAdmission(i){ store.delAt(KEYS.admissions,i); renderAdmissions(); }
+    function admit(i){
+      const a = store.get(KEYS.admissions)[i];
+      const stu = { name:`${a.first} ${a.last}`.trim(), roll:String(Date.now()).slice(-4), class:a.class, parent:a.parent, phone:a.phone, status:'Active' };
+      store.push(KEYS.students, stu); delAdmission(i); renderStudents(); toast('Student admitted');
+    }
+
+    // ======= Students =======
+    let editingStudentIndex = null;
+    qs('#studentForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const s = {
+        name: qs('#s-name').value.trim(), roll: qs('#s-roll').value.trim(), class: qs('#s-class').value.trim(),
+        parent: qs('#s-parent').value.trim(), phone: qs('#s-phone').value.trim(), status: qs('#s-status').value
+      };
+      if(editingStudentIndex===null){ store.push(KEYS.students,s); toast('Student added'); }
+      else { store.replaceAt(KEYS.students, editingStudentIndex, s); toast('Student updated'); editingStudentIndex=null; qs('#editHint').textContent=''; }
+      e.target.reset(); renderStudents(); updateKPIs();
+    });
+    qs('#clearStudent').addEventListener('click',()=>{ editingStudentIndex=null; qs('#studentForm').reset(); qs('#editHint').textContent=''; });
+    function renderStudents(){
+      const filter = qs('#s-filter').value.toLowerCase();
+      const arr = store.get(KEYS.students).filter(s=> JSON.stringify(s).toLowerCase().includes(filter));
+      qs('#studentList').innerHTML = arr.map((s,i)=>`<tr><td>${s.roll}</td><td>${s.name}</td><td>${s.class}</td><td>${s.parent||''}</td><td>${s.phone||''}</td><td><span class='tag'>${s.status}</span></td><td><button class='btn secondary' onclick='editStudent(${i})'>Edit</button> <button class='btn danger' onclick='delStudent(${i})'>Delete</button></td></tr>`).join('');
+      qs('#studentCount').textContent = `${arr.length} shown / ${store.get(KEYS.students).length} total`;
+      updateKPIs();
+    }
+    function editStudent(i){
+      const s = store.get(KEYS.students)[i]; editingStudentIndex = i;
+      qs('#s-name').value = s.name; qs('#s-roll').value = s.roll; qs('#s-class').value = s.class; qs('#s-parent').value = s.parent||''; qs('#s-phone').value = s.phone||''; qs('#s-status').value = s.status||'Active';
+      qs('#editHint').textContent = `Editing ${s.name}`;
+    }
+    function delStudent(i){ store.delAt(KEYS.students,i); renderStudents(); updateKPIs(); }
+    qs('#s-filter').addEventListener('input', renderStudents);
+    qs('#exportStudents').addEventListener('click', ()=>{
+      const data = store.get(KEYS.students); const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'students.json'; a.click();
+    });
+    qs('#importStudentsInput').addEventListener('change', async (e)=>{
+      const file = e.target.files[0]; if(!file) return; const text = await file.text();
+      try{ const arr = JSON.parse(text); if(Array.isArray(arr)){ store.set(KEYS.students, arr); renderStudents(); toast('Imported'); } }catch{ alert('Invalid JSON'); }
+    });
+
+    // ======= Teachers =======
+    qs('#teacherForm').addEventListener('submit', e=>{ e.preventDefault(); const t={name:qs('#t-name').value, subject:qs('#t-subject').value, phone:qs('#t-phone').value, email:qs('#t-email').value}; store.push(KEYS.teachers,t); e.target.reset(); renderTeachers(); toast('Teacher saved'); });
+    function renderTeachers(){ const list = store.get(KEYS.teachers); qs('#teacherCards').innerHTML = list.map((t,i)=>`<div class='card'><h3>${t.name}</h3><p class='muted'>${t.subject}</p><p>${t.phone||''}</p><p>${t.email||''}</p><div style='display:flex;gap:8px'><button class='btn secondary' onclick='delTeacher(${i})'>Delete</button></div></div>`).join(''); updateKPIs(); }
+    function delTeacher(i){ store.delAt(KEYS.teachers,i); renderTeachers(); updateKPIs(); }
+    function renderTeacherDatalist(){ const opts = store.get(KEYS.teachers).map(t=>`<option value="${t.name}"></option>`).join(''); qs('#teacherNames').innerHTML = opts; }
+
+    // ======= Classes & Timetable =======
+    qs('#classForm').addEventListener('submit', e=>{ e.preventDefault(); const c={name:qs('#c-name').value, room:qs('#c-room').value, teacher:qs('#c-teacher').value}; store.push(KEYS.classes,c); e.target.reset(); renderClasses(); toast('Class saved'); updateKPIs(); });
+    function renderClasses(){ const list = store.get(KEYS.classes); qs('#classList').innerHTML = list.map((c,i)=>`<tr><td>${c.name}</td><td>${c.room||''}</td><td>${c.teacher||''}</td><td><button class='btn danger' onclick='delClass(${i})'>Delete</button></td></tr>`).join(''); updateKPIs(); }
+    function delClass(i){ store.delAt(KEYS.classes,i); renderClasses(); updateKPIs(); }
+    qs('#timeForm').addEventListener('submit', e=>{ e.preventDefault(); const t={class:qs('#tt-class').value, day:qs('#tt-day').value, period:qs('#tt-period').value, subject:qs('#tt-subject').value, teacher:qs('#tt-teacher').value}; store.push(KEYS.timetable,t); e.target.reset(); renderTimetable(); });
+    function renderTimetable(){ const list = store.get(KEYS.timetable); qs('#ttList').innerHTML = list.map((t,i)=>`<tr><td>${t.class}</td><td>${t.day}</td><td>${t.period}</td><td>${t.subject}</td><td>${t.teacher||''}</td><td><button class='btn danger' onclick='delTT(${i})'>Delete</button></td></tr>`).join(''); }
+    function delTT(i){ store.delAt(KEYS.timetable,i); renderTimetable(); }
+
+    // ======= Attendance =======
+    qs('#attForm').addEventListener('submit', e=>{ e.preventDefault(); const cls=qs('#att-class').value.trim(); const students = store.get(KEYS.students).filter(s=>s.class.toLowerCase()===cls.toLowerCase()); qs('#attTitle').textContent = `Mark Attendance – ${cls}`; qs('#attList').innerHTML = students.map(s=>`<tr><td>${s.roll}</td><td>${s.name}</td><td><input type='checkbox' data-roll='${s.roll}' checked></td></tr>`).join(''); });
+    qs('#saveAttendance').addEventListener('click', ()=>{ const date = qs('#att-date').value; const cls = qs('#att-class').value; const checks = qsa('#attList input[type="checkbox"]'); const present = checks.filter(c=>c.checked).map(c=>c.dataset.roll); store.push(KEYS.attendance,{date, class:cls, present}); toast('Attendance saved'); });
+
+    // ======= Exams =======
+    qs('#gradeForm').addEventListener('submit', e=>{ e.preventDefault(); const g={roll:qs('#g-roll').value, subject:qs('#g-subj').value, score:Number(qs('#g-score').value)}; store.push(KEYS.grades,g); e.target.reset(); renderGrades(); });
+    function renderGrades(){ const list = store.get(KEYS.grades); qs('#gradeList').innerHTML = list.map((g,i)=>`<tr><td>${g.roll}</td><td>${g.subject}</td><td>${g.score}</td><td><button class='btn danger' onclick='delGrade(${i})'>Delete</button></td></tr>`).join(''); }
+    function delGrade(i){ store.delAt(KEYS.grades,i); renderGrades(); }
+
+    // ======= Fees =======
+    qs('#feeForm').addEventListener('submit', e=>{ e.preventDefault(); const f={roll:qs('#f-roll').value, amount:Number(qs('#f-amount').value), method:qs('#f-method').value, date:qs('#f-date').value||new Date().toISOString().slice(0,10)}; store.push(KEYS.fees,f); e.target.reset(); renderFees(); updateKPIs(); });
+    function renderFees(){ const list = store.get(KEYS.fees); qs('#feeList').innerHTML = list.map((f,i)=>`<tr><td>${f.date}</td><td>${f.roll}</td><td>${money(f.amount)}</td><td>${f.method}</td><td><button class='btn danger' onclick='delFee(${i})'>Delete</button></td></tr>`).join(''); updateKPIs(); }
+    function delFee(i){ store.delAt(KEYS.fees,i); renderFees(); updateKPIs(); }
+
+    // ======= Library =======
+    qs('#bookForm').addEventListener('submit', e=>{ e.preventDefault(); const b={title:qs('#b-title').value, author:qs('#b-author').value, isbn:qs('#b-isbn').value, copies:Number(qs('#b-copies').value||1)}; store.push(KEYS.books,b); e.target.reset(); renderBooks(); });
+    function renderBooks(){ const list = store.get(KEYS.books); qs('#bookList').innerHTML = list.map((b,i)=>`<tr><td>${b.title}</td><td>${b.author}</td><td>${b.isbn||''}</td><td>${b.copies}</td><td><button class='btn danger' onclick='delBook(${i})'>Delete</button></td></tr>`).join(''); }
+    function delBook(i){ store.delAt(KEYS.books,i); renderBooks(); }
+
+    // ======= Transport =======
+    qs('#routeForm').addEventListener('submit', e=>{ e.preventDefault(); const r={name:qs('#r-name').value, driver:qs('#r-driver').value, vehicle:qs('#r-vehicle').value}; store.push(KEYS.routes,r); e.target.reset(); renderRoutes(); });
+    function renderRoutes(){ const list = store.get(KEYS.routes); qs('#routeList').innerHTML = list.map((r,i)=>`<tr><td>${r.name}</td><td>${r.driver||''}</td><td>${r.vehicle||''}</td><td><button class='btn danger' onclick='delRoute(${i})'>Delete</button></td></tr>`).join(''); }
+    function delRoute(i){ store.delAt(KEYS.routes,i); renderRoutes(); }
+
+    // ======= Hostel =======
+    qs('#roomForm').addEventListener('submit', e=>{ e.preventDefault(); const r={room:qs('#h-room').value, cap:Number(qs('#h-cap').value||1), warden:qs('#h-warden').value}; store.push(KEYS.rooms,r); e.target.reset(); renderRooms(); });
+    function renderRooms(){ const list = store.get(KEYS.rooms); qs('#roomList').innerHTML = list.map((r,i)=>`<tr><td>${r.room}</td><td>${r.cap}</td><td>${r.warden||''}</td><td><button class='btn danger' onclick='delRoom(${i})'>Delete</button></td></tr>`).join(''); }
+    function delRoom(i){ store.delAt(KEYS.rooms,i); renderRooms(); }
+
+    // ======= Events =======
+    qs('#eventForm').addEventListener('submit', e=>{ e.preventDefault(); const ev={title:qs('#e-title').value, date:qs('#e-date').value, desc:qs('#e-desc').value}; store.push(KEYS.events,ev); e.target.reset(); renderEvents(); });
+    function renderEvents(){ const list = store.get(KEYS.events).sort((a,b)=>a.date.localeCompare(b.date)); qs('#eventList').innerHTML = list.map((e,i)=>`<tr><td>${e.date}</td><td>${e.title}</td><td><button class='btn danger' onclick='delEvent(${i})'>Delete</button></td></tr>`).join('');
+      qs('#todayList').innerHTML = list.filter(e=>e.date===new Date().toISOString().slice(0,10)).map(e=>`<div>📅 ${e.title}</div>`).join('') || '<span class="muted">No events today</span>'; }
+    function delEvent(i){ store.delAt(KEYS.events,i); renderEvents(); }
+
+    // ======= Announcements =======
+    qs('#annForm').addEventListener('submit', e=>{ e.preventDefault(); const a={title:qs('#an-title').value, body:qs('#an-body').value, ts:new Date().toISOString()}; store.push(KEYS.anns,a); e.target.reset(); renderAnns(); toast('Posted'); });
+    function renderAnns(){ const list = store.get(KEYS.anns).reverse(); qs('#annFeed').innerHTML = list.map((a,i)=>`<li class='card'><strong>${a.title}</strong><p class='muted'>${new Date(a.ts).toLocaleString()}</p><p>${a.body}</p><div><button class='btn danger' onclick='delAnn(${list.length-1-i})'>Delete</button></div></li>`).join(''); qs('#notifCount').textContent = store.get(KEYS.anns).length; }
+    function delAnn(i){ store.delAt(KEYS.anns,i); renderAnns(); }
+
+    // ======= KPIs =======
+    function updateKPIs(){ qs('#kpi-students').textContent = store.get(KEYS.students).length; qs('#kpi-teachers').textContent = store.get(KEYS.teachers).length; qs('#kpi-classes').textContent = store.get(KEYS.classes).length; const fees = store.get(KEYS.fees).reduce((a,b)=>a+b.amount,0); qs('#kpi-fees').textContent = money(fees); }
+
+    // ======= Auth Modal =======
+    function openAuth(){ qs('#authModal').showModal(); }
+    function closeAuth(){ qs('#authModal').close(); }
+    qs('#openLogin').addEventListener('click', openAuth);
+    qs('#authForm').addEventListener('submit', e=>{ e.preventDefault(); closeAuth(); toast('Signed in (demo)'); });
+
+    // ======= Global export/import =======
+    qs('#exportAll')?.addEventListener('click', ()=>{ const data = {}; Object.values(KEYS).forEach(k=>data[k]=store.get(k)); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='smartschool-backup.json'; a.click(); });
+    qs('#importAllInput')?.addEventListener('change', async (e)=>{ const f=e.target.files[0]; if(!f) return; try{ const data=JSON.parse(await f.text()); Object.entries(data).forEach(([k,v])=>store.set(k,v)); toast('All data imported'); renderAll(); }catch{ alert('Invalid file'); }});
+    qs('#clearAll')?.addEventListener('click', ()=>{ if(confirm('This will delete ALL local data. Continue?')){ store.clear(); renderAll(); toast('All data cleared'); }});
+
+    function r
